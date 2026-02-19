@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign Up - Incident Management{% endblock %}
+
+{% block content_guest %}
+<div class="min-h-screen flex items-center justify-center bg-[#1a1d2e] px-4">
+    <div class="max-w-md w-full">
+        <div class="bg-[#22263a] rounded-lg shadow-xl p-8">
+            <h2 class="text-3xl font-bold text-center mb-6 text-indigo-400">Create Account</h2>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="bg-red-900 text-white p-3 rounded mb-4">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Username</label>
+                    {{ form.username }}
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Email</label>
+                    {{ form.email }}
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Password</label>
+                    {{ form.password1 }}
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Confirm Password</label>
+                    {{ form.password2 }}
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Company Name (new company)</label>
+                    {{ form.company_name }}
+                    <p class="text-xs text-gray-400 mt-1">Leave blank if joining existing company</p>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2">Company Slug (existing company)</label>
+                    {{ form.company_slug }}
+                    <p class="text-xs text-gray-400 mt-1">Enter slug if joining existing company</p>
+                </div>
+                
+                <button type="submit" class="btn-primary w-full mb-4">Create Account</button>
+            </form>
+            
+            <div class="mt-6 text-center">
+                <p class="text-gray-400">Already have an account? <a href="{% url 'login' %}" class="text-indigo-400 hover:underline">Sign in</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

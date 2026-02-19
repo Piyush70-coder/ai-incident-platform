@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block page_title %}{{ incident.title }}{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- ================= MAIN ================= -->
+    <div class="lg:col-span-2 space-y-6">
+
+        <!-- ================= INCIDENT SUMMARY ================= -->
+        <div class="card">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h1 class="text-2xl font-bold mb-2">{{ incident.title }}</h1>
+                    <div class="flex items-center space-x-3">
+                        <span class="badge-{{ incident.severity }}">
+                            {{ incident.get_severity_display }}
+                        </span>
+                        <span class="status-badge status-badge-{{ incident.status }}">
+                            {{ incident.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                <span class="font-mono text-sm text-gray-400">
+                    #{{ incident.incident_id }}
+                </span>
+            </div>
+
+            <h3 class="font-semibold mb-2">Description</h3>
+            <div class="text-gray-300 whitespace-pre-wrap">
+                {{ incident.description|default:"No description provided." }}
+            </div>
+        </div>
+
+        <!-- ================= AI ANALYSIS ================= -->
+        <div class="card">
+            <h2 class="text-xl font-bold mb-4">🤖 AI Incident Analysis</h2>
+
+            {% if analysis %}
+
+                {% if analysis.ai_status == "pending" %}
+                <div class="p-4 bg-yellow-900/20 border border-yellow-700 rounded">
+                    <p class="text-yellow-300 font-semibold">
+                        ⏳ AI analysis in progress…
+                    </p>
+                </div>
+                {% endif %}
+
+                {% if analysis.ai_status == "failed" %}
+                <div class="p-4 bg-red-900/20 border border-red-700 rounded">
+                    <p class="text-red-300 font-semibold">❌ AI Analysis Failed</p>
+                    <p class="text-gray-300 mt-2">
+                        {{ analysis.error_message|default:"Unknown AI error." }}
+                    </p>
+
+                    <form method="post"
+                          action="{% url 'trigger_ai_analysis' incident.id %}"
+                          class="mt-4">
+                        {% csrf_token %}
+                        <button class="btn-secondary">
+                            Retry AI Analysis
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+
+                {% if analysis.ai_status == "completed" %}
+                <!-- CONFIDENCE -->
+                <div class="mb-6">
+                    <h3 class="font-semibold mb-2">Confidence Score</h3>
+                    <div class="flex items-center space-x-3">
+                        <progress value="{{ analysis.confidence_score|default:0 }}"
+                                  max="1"
+                                  class="w-full"></progress>
+                        <span class="font-mono text-sm">
+                            {{ analysis.confidence_score|default:0|floatformat:2 }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- ROOT CAUSE -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-2 text-indigo-400">
+                        Root Cause
+                    </h3>
+                    <p class="text-gray-300 whitespace-pre-wrap">
+                        {{ analysis.root_cause|default:"Root cause not determined." }}
+                    </p>
+                </div>
+
+                <!-- EXPLANATION -->
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">
+                        Explanation
+                    </h3>
+                    <p class="text-gray-300 whitespace-pre-wrap">
+                        {{ analysis.explanation|default:"No explanation generated." }}
+                    </p>
+                </div>
+                {% endif %}
+
+            {% else %}
+                <p class="text-gray-400">No AI analysis yet.</p>
+                <form method="post"
+                      action="{% url 'trigger_ai_analysis' incident.id %}"
+                      class="mt-4">
+                    {% csrf_token %}
+                    <button class="btn-secondary">
+                        Run AI Analysis
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+
+        <!-- ================= POSTMORTEM ================= -->
+        {% if analysis and analysis.postmortem %}
+        <div class="card">
+            <h2 class="text-xl font-bold mb-4">📝 Incident Postmortem</h2>
+
+            <pre class="text-gray-300 whitespace-pre-wrap mb-4">
+{{ analysis.postmortem }}
+            </pre>
+
+            <div class="flex space-x-3 mt-4">
+                <a href="{% url 'download_postmortem_md' incident.id %}"
+                   class="btn-secondary">
+                    ⬇️ Download Markdown
+                </a>
+
+                <a href="{% url 'download_postmortem_pdf' incident.id %}"
+                   class="btn-secondary">
+                    ⬇️ Download PDF
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ================= LOGS ================= -->
+        {% if incident.logs.all %}
+        <div class="card">
+            <h2 class="text-xl font-bold mb-4">Logs</h2>
+            {% for log in incident.logs.all %}
+            <div class="p-3 bg-gray-800 rounded mb-2 flex justify-between">
+                <span>{{ log.file_name }}</span>
+                <a href="{% url 'log_viewer' log.id %}"
+                   class="text-indigo-400">
+                    View
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- ================= SIDEBAR ================= -->
+    <div class="space-y-6">
+        <div class="card">
+            <h3 class="font-semibold mb-3">Details</h3>
+            <p>
+                <span class="text-gray-400">Created:</span>
+                {{ incident.created_at|date:"M d, Y H:i" }}
+            </p>
+            <p>
+                <span class="text-gray-400">Created by:</span>
+                {{ incident.created_by.username }}
+            </p>
+            {% if incident.assigned_to %}
+            <p>
+                <span class="text-gray-400">Assigned:</span>
+                {{ incident.assigned_to.username }}
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

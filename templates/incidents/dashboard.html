@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Metrics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="card">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-400 text-sm">Total Incidents (24h)</p>
+                <p class="text-3xl font-bold mt-2" id="metric-total-24h">{{ metrics.total_incidents_24h }}</p>
+            </div>
+            <div class="bg-blue-500/20 p-3 rounded-full">
+                <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-400 text-sm">Open Incidents</p>
+                <p class="text-3xl font-bold mt-2" id="metric-open">{{ metrics.open_incidents }}</p>
+            </div>
+            <div class="bg-yellow-500/20 p-3 rounded-full">
+                <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-400 text-sm">MTTR (Hours)</p>
+                <p class="text-3xl font-bold mt-2" id="metric-mttr">{{ metrics.mttr_hours|floatformat:1 }}</p>
+            </div>
+            <div class="bg-green-500/20 p-3 rounded-full">
+                <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-400 text-sm">Resolved</p>
+                <p class="text-3xl font-bold mt-2" id="metric-resolved">{{ metrics.resolved_incidents }}</p>
+            </div>
+            <div class="bg-indigo-500/20 p-3 rounded-full">
+                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="card">
+        <h3 class="text-lg font-semibold mb-4">Incidents Over Time (30 days)</h3>
+        <div class="chart-container">
+            <canvas id="timeseriesChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3 class="text-lg font-semibold mb-4">Incidents by Severity</h3>
+        <div class="chart-container">
+            <canvas id="severityChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="card">
+        <h3 class="text-lg font-semibold mb-4">Top Affected Services</h3>
+        <div class="chart-container">
+            <canvas id="servicesChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3 class="text-lg font-semibold mb-4">Status Distribution</h3>
+        <div class="chart-container">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Real-time Dashboard Updates
+    function updateDashboard() {
+        fetch('/api/analytics/')
+            .then(response => response.json())
+            .then(data => {
+                const metrics = data.metrics;
+                
+                const elements = {
+                    'metric-total-24h': metrics.total_incidents_24h,
+                    'metric-open': metrics.open_incidents,
+                    'metric-mttr': metrics.mttr_hours.toFixed(1),
+                    'metric-resolved': metrics.resolved_incidents
+                };
+
+                Object.keys(elements).forEach(function(id) {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.textContent = elements[id];
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching analytics:', error));
+    }
+
+    // Poll every 10 seconds
+    setInterval(updateDashboard, 10000);
+</script>
+
+<!-- Recent Incidents -->
+<div class="card">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold">Recent Incidents</h3>
+        <a href="{% url 'incident_list' %}" class="text-indigo-400 hover:underline">View All</a>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="table-dark">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Severity</th>
+                    <th>Status</th>
+                    <th>Assigned To</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for incident in recent_incidents %}
+                <tr class="cursor-pointer hover:bg-gray-800" onclick="window.location='{% url 'incident_detail' incident.id %}'">
+                    <td class="font-medium">{{ incident.title|truncatewords:10 }}</td>
+                    <td>
+                        <span class="badge-{{ incident.severity }}">{{ incident.get_severity_display }}</span>
+                    </td>
+                    <td>
+                        <span class="status-badge status-badge-{{ incident.status }}">{{ incident.get_status_display }}</span>
+                    </td>
+                    <td>{{ incident.assigned_to.username|default:"Unassigned" }}</td>
+                    <td>{{ incident.created_at|timesince }} ago</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-gray-400 py-8">No incidents yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+// Parse JSON data
+const metricsData = {{ metrics_json|safe }};
+const timeseriesData = JSON.parse('{{ timeseries|escapejs }}');
+
+// Helper: format date as YYYY-MM-DD
+const fmt = d => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+};
+
+// Build labels and counts even if server returned no data
+let tsLabels, tsCounts;
+if (timeseriesData && timeseriesData.length > 0) {
+    tsLabels = timeseriesData.map(d => d.day);
+    tsCounts = timeseriesData.map(d => d.count);
+} else {
+    const days = 30;
+    const now = new Date();
+    tsLabels = Array.from({ length: days }, (_, i) => {
+        const d = new Date(now);
+        d.setDate(d.getDate() - (days - 1 - i));
+        return fmt(d);
+    });
+    tsCounts = Array.from({ length: days }, () => 0);
+}
+
+// Timeseries Chart
+const timeseriesCtx = document.getElementById('timeseriesChart').getContext('2d');
+new Chart(timeseriesCtx, {
+    type: 'line',
+    data: {
+        labels: tsLabels,
+        datasets: [{
+            label: 'Incidents',
+            data: tsCounts,
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: { beginAtZero: true, ticks: { color: '#9ca3af' }, grid: { color: '#374151' } },
+            x: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' } }
+        }
+    }
+});
+
+// Severity Chart
+const severityCanvas = document.getElementById('severityChart');
+const severityCtx = severityCanvas.getContext('2d');
+const severityData = metricsData.severity_distribution || [];
+const severityColors = {
+    'critical': '#ef4444',
+    'high': '#f97316',
+    'medium': '#f59e0b',
+    'low': '#3b82f6'
+};
+if (severityData.length === 0) {
+    severityCanvas.parentElement.insertAdjacentHTML('beforeend', '<div class="text-gray-400">No severity data yet</div>');
+} else {
+    new Chart(severityCtx, {
+        type: 'pie',
+        data: {
+            labels: severityData.map(d => d.severity),
+            datasets: [{
+                data: severityData.map(d => d.count),
+                backgroundColor: severityData.map(d => severityColors[d.severity] || '#6b7280')
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: '#9ca3af' } }
+            }
+        }
+    });
+}
+
+// Services Chart
+const servicesCanvas = document.getElementById('servicesChart');
+const servicesCtx = servicesCanvas.getContext('2d');
+const servicesData = metricsData.top_services || {};
+if (Object.keys(servicesData).length === 0) {
+    servicesCanvas.parentElement.insertAdjacentHTML('beforeend', '<div class="text-gray-400">No affected services yet</div>');
+} else {
+    new Chart(servicesCtx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(servicesData),
+            datasets: [{
+                label: 'Incidents',
+                data: Object.values(servicesData),
+                backgroundColor: '#6366f1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { color: '#9ca3af' }, grid: { color: '#374151' } },
+                x: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' } }
+            }
+        }
+    });
+}
+
+// Status Chart
+const statusCanvas = document.getElementById('statusChart');
+const statusCtx = statusCanvas.getContext('2d');
+const statusData = metricsData.status_distribution || [];
+if (statusData.length === 0) {
+    statusCanvas.parentElement.insertAdjacentHTML('beforeend', '<div class="text-gray-400">No status data yet</div>');
+} else {
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: statusData.map(d => d.status),
+            datasets: [{
+                data: statusData.map(d => d.count),
+                backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#6b7280']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: '#9ca3af' } }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

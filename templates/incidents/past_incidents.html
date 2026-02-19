@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block page_title %}Past Incidents{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">Past Incidents (Resolved/Closed)</h1>
+</div>
+
+<!-- Search -->
+<div class="card mb-6">
+    <form method="get" class="flex gap-4">
+        <div class="flex-grow">
+            <input type="text" name="search" value="{{ search }}" placeholder="Search past incidents..." class="form-control">
+        </div>
+        <button type="submit" class="btn-primary px-6">Search</button>
+    </form>
+</div>
+
+<!-- Incidents Table -->
+<div class="card">
+    <div class="overflow-x-auto">
+        <table class="table-dark">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Severity</th>
+                    <th>Status</th>
+                    <th>Resolved At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for incident in page_obj %}
+                <tr>
+                    <td class="font-mono text-sm">#{{ incident.incident_id }}</td>
+                    <td>
+                        <a href="{% url 'incident_detail' incident.id %}" class="font-medium hover:text-indigo-400">
+                            {{ incident.title|truncatewords:8 }}
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge-{{ incident.severity }}">{{ incident.get_severity_display }}</span>
+                    </td>
+                    <td>
+                        <span class="status-badge status-badge-{{ incident.status }}">{{ incident.get_status_display }}</span>
+                    </td>
+                    <td>{{ incident.updated_at|date:"M d, Y" }}</td>
+                    <td>
+                        <a href="{% url 'incident_detail' incident.id %}" class="text-indigo-400 hover:underline">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-gray-400 py-8">No past incidents found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="mt-4 flex justify-between items-center">
+        <div class="text-sm text-gray-400">
+            Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
+        </div>
+        <div class="flex space-x-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}" class="btn-secondary">Previous</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}" class="btn-secondary">Next</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

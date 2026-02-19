@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Company Settings{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card mb-8">
+        <h3 class="text-xl font-bold mb-4">Company Details</h3>
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-sm font-medium mb-1">Company Name</label>
+                <input type="text" name="name" value="{{ company.name }}" class="form-control">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium mb-1">Slug</label>
+                <input type="text" value="{{ company.slug }}" class="form-control bg-gray-700 cursor-not-allowed" disabled>
+                <p class="text-xs text-gray-400 mt-1">Slug cannot be changed.</p>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium mb-1">Subscription Tier</label>
+                <span class="inline-block px-2 py-1 rounded text-xs font-bold uppercase bg-indigo-600 text-white">
+                    {{ company.get_subscription_tier_display }}
+                </span>
+            </div>
+            
+            <div class="pt-4">
+                <button type="submit" class="btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="card">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Team Members</h3>
+            <a href="{% url 'company_users' %}" class="btn-secondary text-sm">Manage Users</a>
+        </div>
+        <p class="text-gray-400">
+            {{ company.users.count }} active users in this company.
+        </p>
+    </div>
+</div>
+{% endblock %}

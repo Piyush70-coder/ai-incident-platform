@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block page_title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Notifications</h1>
+        <form method="post" action="{% url 'notifications' %}" class="inline">
+            {% csrf_token %}
+            <button type="submit" name="mark_all_read" class="btn-secondary">Mark All Read</button>
+        </form>
+    </div>
+    
+    <div class="card">
+        {% if notifications %}
+        <div class="space-y-4">
+            {% for notification in notifications %}
+            <div class="p-4 border-b border-gray-700 {% if not notification.read %}bg-gray-800/50{% endif %}">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center mb-2">
+                            <span class="font-medium">{{ notification.get_notification_type_display }}</span>
+                            {% if not notification.read %}
+                            <span class="ml-2 w-2 h-2 bg-indigo-500 rounded-full"></span>
+                            {% endif %}
+                        </div>
+                        <p class="text-gray-300">{{ notification.message }}</p>
+                        {% if notification.incident %}
+                        <a href="{% url 'incident_detail' notification.incident.id %}" class="text-indigo-400 hover:underline text-sm mt-2 inline-block">
+                            View Incident →
+                        </a>
+                        {% endif %}
+                        <div class="text-xs text-gray-400 mt-2">{{ notification.created_at|timesince }} ago</div>
+                    </div>
+                    {% if not notification.read %}
+                    <form method="post" action="{% url 'notifications' %}" class="ml-4">
+                        {% csrf_token %}
+                        <input type="hidden" name="notification_id" value="{{ notification.id }}">
+                        <button type="submit" name="mark_read" class="text-indigo-400 hover:text-indigo-300 text-sm">Mark Read</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12 text-gray-400">
+            <p>No notifications</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

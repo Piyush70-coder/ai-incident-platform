@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Team Members{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold">Users</h2>
+        <a href="{% url 'company_settings' %}" class="btn-secondary">Back to Settings</a>
+    </div>
+
+    <div class="card overflow-hidden">
+        <table class="table-dark">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>
+                        <div class="flex items-center">
+                            {% if u.avatar %}
+                            <img src="{{ u.avatar.url }}" class="w-8 h-8 rounded-full mr-3">
+                            {% else %}
+                            <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center mr-3 text-xs">
+                                {{ u.username|first|upper }}
+                            </div>
+                            {% endif %}
+                            <span class="font-medium">{{ u.username }}</span>
+                        </div>
+                    </td>
+                    <td>{{ u.email }}</td>
+                    <td>
+                        <span class="px-2 py-1 rounded text-xs font-bold 
+                            {% if u.is_company_admin %}bg-purple-600 text-white{% else %}bg-gray-600 text-gray-200{% endif %}">
+                            {{ u.get_role_display }}
+                        </span>
+                    </td>
+                    <td>{{ u.date_joined|date:"M d, Y" }}</td>
+                    <td>
+                        {% if u.is_active %}
+                        <span class="text-green-400 text-xs">Active</span>
+                        {% else %}
+                        <span class="text-red-400 text-xs">Inactive</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-gray-500 py-4">No users found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

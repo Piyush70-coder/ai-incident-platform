@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block page_title %}Incidents{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">Incidents</h1>
+    <a href="{% url 'incident_create' %}" class="btn-primary">
+        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        New Incident
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="card mb-6">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div>
+            <label class="block text-sm font-medium mb-2">Search</label>
+            <input type="text" name="search" value="{{ search }}" placeholder="Search..." class="form-control">
+        </div>
+        
+        <div>
+            <label class="block text-sm font-medium mb-2">Status</label>
+            <select name="status" class="form-select">
+                <option value="">All</option>
+                <option value="new" {% if status == 'new' %}selected{% endif %}>New</option>
+                <option value="investigating" {% if status == 'investigating' %}selected{% endif %}>Investigating</option>
+                <option value="analyzing" {% if status == 'analyzing' %}selected{% endif %}>Analyzing</option>
+                <option value="root_cause_found" {% if status == 'root_cause_found' %}selected{% endif %}>Root Cause Found</option>
+                <option value="mitigating" {% if status == 'mitigating' %}selected{% endif %}>Mitigating</option>
+                <option value="resolved" {% if status == 'resolved' %}selected{% endif %}>Resolved</option>
+                <option value="closed" {% if status == 'closed' %}selected{% endif %}>Closed</option>
+            </select>
+        </div>
+        
+        <div>
+            <label class="block text-sm font-medium mb-2">Severity</label>
+            <select name="severity" class="form-select">
+                <option value="">All</option>
+                <option value="critical" {% if severity == 'critical' %}selected{% endif %}>Critical</option>
+                <option value="high" {% if severity == 'high' %}selected{% endif %}>High</option>
+                <option value="medium" {% if severity == 'medium' %}selected{% endif %}>Medium</option>
+                <option value="low" {% if severity == 'low' %}selected{% endif %}>Low</option>
+            </select>
+        </div>
+        
+        <div>
+            <label class="block text-sm font-medium mb-2">Assigned To</label>
+            <select name="assigned_to" class="form-select">
+                <option value="">All</option>
+                {% for user in users %}
+                <option value="{{ user.id }}" {% if assigned_to == user.id|stringformat:"s" %}selected{% endif %}>{{ user.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="flex items-end">
+            <button type="submit" class="btn-primary w-full">Filter</button>
+        </div>
+    </form>
+</div>
+
+<!-- Incidents Table -->
+<div class="card">
+    <div class="overflow-x-auto">
+        <table class="table-dark">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Severity</th>
+                    <th>Status</th>
+                    <th>Assigned To</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for incident in page_obj %}
+                <tr>
+                    <td class="font-mono text-sm">#{{ incident.incident_id }}</td>
+                    <td>
+                        <a href="{% url 'incident_detail' incident.id %}" class="font-medium hover:text-indigo-400">
+                            {{ incident.title|truncatewords:8 }}
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge-{{ incident.severity }}">{{ incident.get_severity_display }}</span>
+                    </td>
+                    <td>
+                        <span class="status-badge status-badge-{{ incident.status }}">{{ incident.get_status_display }}</span>
+                    </td>
+                    <td>{{ incident.assigned_to.username|default:"—" }}</td>
+                    <td>{{ incident.created_at|timesince }} ago</td>
+                    <td>
+                        <a href="{% url 'incident_detail' incident.id %}" class="text-indigo-400 hover:underline">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-gray-400 py-8">No incidents found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="mt-4 flex justify-between items-center">
+        <div class="text-sm text-gray-400">
+            Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
+        </div>
+        <div class="flex space-x-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" class="btn-secondary">Previous</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" class="btn-secondary">Next</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

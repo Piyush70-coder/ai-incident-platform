@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Log Viewer - {{ log.file_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold">{{ log.file_name }}</h1>
+            <p class="text-gray-400 text-sm mt-1">{{ log.file_size|filesizeformat }} • {{ log.file_type }}</p>
+        </div>
+        <a href="{% url 'incident_detail' log.incident.id %}" class="btn-secondary">Back to Incident</a>
+    </div>
+    
+    <div class="card">
+        <div class="bg-gray-900 rounded p-4 overflow-x-auto">
+            <pre class="log-content text-sm text-gray-300 font-mono whitespace-pre-wrap"><code>{{ content }}</code></pre>
+        </div>
+    </div>
+</div>
+
+<style>
+.log-content {
+    line-height: 1.6;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.log-content code {
+    display: block;
+    counter-reset: line;
+}
+
+.log-content code:before {
+    counter-increment: line;
+    content: counter(line);
+    display: inline-block;
+    width: 3em;
+    padding-right: 1em;
+    margin-right: 1em;
+    color: #6b7280;
+    text-align: right;
+    border-right: 1px solid #374151;
+}
+</style>
+{% endblock %}
+

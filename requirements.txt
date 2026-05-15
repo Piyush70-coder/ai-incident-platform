@@ -16,9 +16,7 @@ groq==0.31.0
 transformers==4.55.4
 sentence-transformers==5.1.0
 
-torch==2.8.0
-torchaudio==2.8.0
-torchvision==0.23.0
+torch==2.6.0
 
 peft==0.17.1
 accelerate==1.10.1

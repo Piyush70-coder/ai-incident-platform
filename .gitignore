@@ -1,41 +1,98 @@
-# Python
+# =========================================================
+# PYTHON
+# =========================================================
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+.python-version
+
+# Virtual Environments
 venv/
+.venv/
 env/
 ENV/
-*.egg-info/
-dist/
-build/
 
-# Django
+# =========================================================
+# DJANGO
+# =========================================================
 *.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
-/media
-/staticfiles
-/static
 
-# Environment
+# Static & Media
+media/
+static/
+staticfiles/
+
+# =========================================================
+# ENVIRONMENT VARIABLES / SECRETS
+# =========================================================
 .env
 .env.local
+.env.*
+!.env.example
 
-# IDE
+# =========================================================
+# IDE / EDITOR FILES
+# =========================================================
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# OS
+# =========================================================
+# OS FILES
+# =========================================================
 .DS_Store
 Thumbs.db
 
-# Celery
+# =========================================================
+# CELERY / REDIS
+# =========================================================
 celerybeat-schedule
 celerybeat.pid
+dump.rdb
 
+# =========================================================
+# AI / MACHINE LEARNING MODELS
+# =========================================================
+*.bin
+*.pt
+*.pth
+*.h5
+*.ckpt
+*.safetensors
+*.onnx
+
+# AI model folders
+models/
+checkpoints/
+ai_models/
+incidents/ai_models/
+
+# HuggingFace / Transformers cache
+.cache/
+.huggingface/
+
+# =========================================================
+# JUPYTER
+# =========================================================
+.ipynb_checkpoints/
+
+# =========================================================
+# TESTING / COVERAGE
+# =========================================================
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# =========================================================
+# TEMP FILES
+# =========================================================
+*.tmp
+*.temp

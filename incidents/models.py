@@ -90,6 +90,11 @@ class Incident(models.Model):
         help_text="For planned maintenance"
     )
 
+    occurrence_count = models.IntegerField(default=1)
+    last_seen_at = models.DateTimeField(null=True, blank=True)
+    error_signature = models.CharField(max_length=512, blank=True, db_index=True)
+    needs_follow_up = models.BooleanField(default=False)
+
     class Meta:
         ordering = ['-created_at']
 
@@ -171,6 +176,11 @@ class IncidentAnalysis(models.Model):
     root_cause = models.TextField(blank=True)
     explanation = models.TextField(blank=True)
     postmortem = models.TextField(blank=True, null=True)
+    is_corrected = models.BooleanField(default=False)
+    user_root_cause = models.TextField(blank=True)
+    feedback_notes = models.TextField(blank=True)
+    structured_output = models.JSONField(default=dict, blank=True)
+    full_ai_report = models.JSONField(default=dict, blank=True)
 
     confidence_score = models.FloatField(default=0.0)
 

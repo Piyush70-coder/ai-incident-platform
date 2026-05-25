@@ -350,6 +350,6 @@ into a unified enterprise-style platform.
 ## Piyush Sharma
 
 GitHub:
-https://github.com/Piyush70-coderyeah
+https://github.com/Piyush70-coder
 
 ---
